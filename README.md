@@ -1,24 +1,4 @@
-<div align="center"  style='border-radius: 25% 10%;'>
-  <img height="150" src="https://media.licdn.com/dms/image/v2/D4E03AQHFLCtE7R85iQ/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1694417638825?e=1734566400&v=beta&t=FtRSfhUoG94nRU8q4FosIJCzBQGT-toysZmCf6SoQO4"  />
-</div>
-
-###
-
-<div align="center">
-  <a href="https://www.linkedin.com/in/mohamed-zoubir/" target="_blank">
-    <img src="https://img.shields.io/static/v1?message=LinkedIn&logo=linkedin&label=&color=0077B5&logoColor=white&labelColor=&style=for-the-badge" height="25" alt="linkedin logo"  />
-  </a>
-</div>
-
-###
-
-<div align="center">
-  <img src="https://visitor-badge.laobi.icu/badge?page_id=mdzoubir.mdzoubir&"  />
-</div>
-
-###
-
-<h1 align="center">hey there 👋</h1>
+<h1 align="center">Hey there 👋</h1>
 
 ###
 
