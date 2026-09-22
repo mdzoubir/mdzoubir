@@ -41,11 +41,27 @@ def format_plural(unit):
     return 's' if unit != 1 else ''
 
 
+def post_with_retry(query, variables, retries=5):
+    """
+    Posts a GraphQL query, retrying with backoff on GitHub's transient 5xx errors and network timeouts
+    """
+    for attempt in range(retries):
+        try:
+            request = requests.post('https://api.github.com/graphql', json={'query': query, 'variables':variables}, headers=HEADERS, timeout=60)
+            if request.status_code < 500:
+                return request
+        except (requests.ConnectionError, requests.Timeout):
+            if attempt == retries - 1:
+                raise
+        time.sleep(2 ** attempt * 5)
+    return request
+
+
 def simple_request(func_name, query, variables):
     """
     Returns a request, or raises an Exception if the response does not succeed.
     """
-    request = requests.post('https://api.github.com/graphql', json={'query': query, 'variables':variables}, headers=HEADERS)
+    request = post_with_retry(query, variables)
     if request.status_code == 200:
         return request
     raise Exception(func_name, ' has failed with a', request.status_code, request.text, QUERY_COUNT)
@@ -114,12 +130,12 @@ def recursive_loc(owner, repo_name, data, cache_comment, addition_total=0, delet
     cannot hit Python's recursion limit.
     """
     query = '''
-    query ($repo_name: String!, $owner: String!, $cursor: String) {
+    query ($repo_name: String!, $owner: String!, $cursor: String, $author_id: ID) {
         repository(name: $repo_name, owner: $owner) {
             defaultBranchRef {
                 target {
                     ... on Commit {
-                        history(first: 100, after: $cursor) {
+                        history(first: 100, after: $cursor, author: {id: $author_id}) {
                             totalCount
                             edges {
                                 node {
@@ -147,8 +163,8 @@ def recursive_loc(owner, repo_name, data, cache_comment, addition_total=0, delet
     }'''
     while True:
         query_count('recursive_loc')
-        variables = {'repo_name': repo_name, 'owner': owner, 'cursor': cursor}
-        request = requests.post('https://api.github.com/graphql', json={'query': query, 'variables':variables}, headers=HEADERS) # I cannot use simple_request(), because I want to save the file before raising Exception
+        variables = {'repo_name': repo_name, 'owner': owner, 'cursor': cursor, 'author_id': OWNER_ID['id']} # only fetch my commits, not the whole history
+        request = post_with_retry(query, variables) # I cannot use simple_request(), because I want to save the file before raising Exception
         if request.status_code != 200:
             force_close_file(data, cache_comment) # saves what is currently in the file before this program crashes
             if request.status_code == 403:
